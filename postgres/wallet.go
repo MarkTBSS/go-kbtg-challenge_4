@@ -47,7 +47,7 @@ func (postgres *Postgres) Wallets() ([]wallet.Wallet, error) {
 	return wallets, nil
 }
 
-func (postgres *Postgres) GetByType(walletType string) ([]wallet.Wallet, error) {
+func (postgres *Postgres) WalletsByType(walletType string) ([]wallet.Wallet, error) {
 	query := "SELECT * FROM user_wallet WHERE wallet_type = $1"
 	rows, err := postgres.Database.Query(query, walletType)
 	if err != nil {
@@ -57,30 +57,27 @@ func (postgres *Postgres) GetByType(walletType string) ([]wallet.Wallet, error) 
 
 	var wallets []wallet.Wallet
 	for rows.Next() {
-		var w Wallet
-		err := rows.Scan(&w.ID,
-			&w.UserID, &w.UserName,
-			&w.WalletName, &w.WalletType,
-			&w.Balance, &w.CreatedAt,
+		var w wallet.Wallet // Assuming wallet.Wallet is the type of your wallet struct
+		err := rows.Scan(
+			&w.ID,
+			&w.UserID,
+			&w.UserName,
+			&w.WalletName,
+			&w.WalletType,
+			&w.Balance,
+			&w.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-		wallets = append(wallets, wallet.Wallet{
-			ID:         w.ID,
-			UserID:     w.UserID,
-			UserName:   w.UserName,
-			WalletName: w.WalletName,
-			WalletType: w.WalletType,
-			Balance:    w.Balance,
-			CreatedAt:  w.CreatedAt,
-		})
+		wallets = append(wallets, w)
 	}
 	return wallets, nil
 }
-func (postgres *Postgres) GetByUserID(id string) ([]wallet.Wallet, error) {
+
+func (postgres *Postgres) WalletsByUserID(user_id string) ([]wallet.Wallet, error) {
 	query := "SELECT * FROM user_wallet WHERE user_id = $1"
-	rows, err := postgres.Database.Query(query, id)
+	rows, err := postgres.Database.Query(query, user_id)
 	if err != nil {
 		return nil, err
 	}
